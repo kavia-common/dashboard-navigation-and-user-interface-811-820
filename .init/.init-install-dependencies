@@ -1,0 +1,4 @@
+{
+    "command": "npm install",
+    "working_directory": "/tmp/kavia/workspace/code-generation/dashboard-navigation-and-user-interface-811-820/social_media_frontend"
+}
