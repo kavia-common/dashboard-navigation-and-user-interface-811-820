@@ -1,102 +1,42 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { AuthContext } from '../context/AuthContext';
-import { createApiClient } from '../api/client';
-import './pages.css';
+import React, { useEffect, useState } from "react";
+import { apiFetch } from "../api/client";
 
+// PUBLIC_INTERFACE
 export default function Dashboard() {
-  const { token } = useContext(AuthContext);
-  const api = useMemo(() => createApiClient(() => token), [token]);
-  const [loading, setLoading] = useState(true);
-  const [metrics, setMetrics] = useState({
-    totalPosts: 0,
-    followers: 0,
-    engagementRate: 0,
-    growthPercent: 0,
-  });
-  const [recent, setRecent] = useState([]);
+  /** Dashboard page: loads analytics summary. */
+  const [summary, setSummary] = useState(null);
+  const [err, setErr] = useState("");
 
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      setLoading(true);
-      try {
-        // Expected endpoints:
-        // GET /analytics/summary -> { totalPosts, followers, engagementRate, growthPercent }
-        // GET /analytics/recent -> [{ id, title, likes, comments, shares }]
-        const [summary, rec] = await Promise.all([
-          api.get('/analytics/summary'),
-          api.get('/analytics/recent'),
-        ]);
-        if (!mounted) return;
-        setMetrics({
-          totalPosts: summary?.totalPosts ?? 0,
-          followers: summary?.followers ?? 0,
-          engagementRate: summary?.engagementRate ?? 0,
-          growthPercent: summary?.growthPercent ?? 0,
-        });
-        setRecent(Array.isArray(rec) ? rec.slice(0, 5) : []);
-      } catch (e) {
-        console.error('Failed to load analytics', e);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, [api]);
+    apiFetch("/analytics/summary")
+      .then(setSummary)
+      .catch((e) => setErr(e.message || "Failed to load analytics"));
+  }, []);
+
+  if (err) return <div style={{ color: "red" }}>{err}</div>;
+  if (!summary) return <div>Loading analytics...</div>;
 
   return (
-    <div className="sm-page">
-      <div className="sm-grid">
-        <Widget title="Total Posts" value={metrics.totalPosts} accent="blue" />
-        <Widget title="Followers" value={metrics.followers} accent="amber" />
-        <Widget title="Engagement Rate" value={`${metrics.engagementRate}%`} accent="green" />
-        <Widget title="Growth" value={`${metrics.growthPercent}%`} accent="blue" />
+    <div>
+      <h2 style={{ color: "var(--color-primary)" }}>Analytics Summary</h2>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+        <Card title="Posts" value={summary.posts_count} />
+        <Card title="Likes" value={summary.likes_count} />
+        <Card title="Comments" value={summary.comments_count} />
+        <Card title="Shares" value={summary.shares_count} />
+        <Card title="Views" value={summary.views_count} />
+        <Card title="Followers" value={summary.followers_count} />
+        <Card title="Following" value={summary.following_count} />
       </div>
-
-      <section className="sm-section">
-        <div className="sm-section-header">
-          <h2>Recent Performance</h2>
-        </div>
-        {loading ? (
-          <div className="sm-card">Loading analytics...</div>
-        ) : (
-          <div className="sm-card">
-            <div className="sm-table">
-              <div className="sm-table-head">
-                <div>Post</div>
-                <div>Likes</div>
-                <div>Comments</div>
-                <div>Shares</div>
-              </div>
-              <div className="sm-table-body">
-                {recent.map((r) => (
-                  <div className="sm-table-row" key={r.id}>
-                    <div className="sm-ellipsis">{r.title}</div>
-                    <div>{r.likes}</div>
-                    <div>{r.comments}</div>
-                    <div>{r.shares}</div>
-                  </div>
-                ))}
-                {recent.length === 0 && (
-                  <div className="sm-table-row">
-                    <div className="sm-ellipsis" style={{ gridColumn: '1 / -1' }}>No recent posts.</div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </section>
     </div>
   );
 }
 
-function Widget({ title, value, accent }) {
-  const cls = `sm-card sm-widget sm-accent-${accent}`;
+function Card({ title, value }) {
   return (
-    <div className={cls}>
-      <div className="sm-widget-title">{title}</div>
-      <div className="sm-widget-value">{value}</div>
+    <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, padding: 16 }}>
+      <div style={{ color: "var(--color-accent)", fontWeight: 600 }}>{title}</div>
+      <div style={{ fontSize: 24, fontWeight: 700 }}>{value}</div>
     </div>
   );
 }

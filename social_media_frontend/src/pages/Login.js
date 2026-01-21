@@ -1,51 +1,50 @@
-import React, { useContext, useState } from 'react';
-import { AuthContext } from '../context/AuthContext';
-import './pages.css';
+import React, { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { Link, useNavigate } from "react-router-dom";
 
+// PUBLIC_INTERFACE
 export default function Login() {
-  const { login, loading } = useContext(AuthContext);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  /** Simple login form. */
+  const { login, register } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [mode, setMode] = useState("login");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const [error, setError] = useState('');
-
-  const onSubmit = async (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     try {
-      await login(email, password);
-      // Redirect via router handled externally by ProtectedRoute usage.
-      // Alternatively, window.location = '/dashboard';
-      window.location.assign('/dashboard');
+      if (mode === "login") {
+        await login(email, password);
+      } else {
+        await register(email, password);
+      }
+      navigate("/dashboard");
     } catch (err) {
-      setError('Invalid credentials or server error.');
+      setError(err.message || "Authentication failed");
     }
   };
 
   return (
-    <div className="sm-login-wrap">
-      <div className="sm-login-card">
-        <div className="sm-login-header">
-          <div className="sm-login-logo">S</div>
-          <div className="sm-login-title">Sign in to Social Dashboard</div>
-          <div className="sm-login-subtitle">Use your account to continue</div>
-        </div>
-        <form className="sm-form" onSubmit={onSubmit}>
-          <div className="sm-form-row">
-            <label htmlFor="email">Email</label>
-            <input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          </div>
-          <div className="sm-form-row">
-            <label htmlFor="password">Password</label>
-            <input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
-          </div>
-          {error && <div className="sm-error">{error}</div>}
-          <div className="sm-form-actions">
-            <button className="sm-btn sm-btn-primary" type="submit" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign In'}
-            </button>
-          </div>
-        </form>
+    <div style={{ maxWidth: 420, margin: "80px auto", background: "#fff", padding: 24, borderRadius: 12 }}>
+      <h2>{mode === "login" ? "Login" : "Sign up"}</h2>
+      {error && <div style={{ color: "red", marginBottom: 8 }}>{error}</div>}
+      <form onSubmit={submit} style={{ display: "grid", gap: 12 }}>
+        <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" type="email" />
+        <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" type="password" />
+        <button className="btn-primary" type="submit">{mode === "login" ? "Login" : "Create Account"}</button>
+      </form>
+      <div style={{ marginTop: 12 }}>
+        {mode === "login" ? (
+          <button onClick={() => setMode("signup")}>Need an account? Sign up</button>
+        ) : (
+          <button onClick={() => setMode("login")}>Have an account? Login</button>
+        )}
+      </div>
+      <div style={{ marginTop: 12 }}>
+        <Link to="/">Back</Link>
       </div>
     </div>
   );

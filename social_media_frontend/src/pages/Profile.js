@@ -1,81 +1,67 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { AuthContext } from '../context/AuthContext';
-import { createApiClient } from '../api/client';
-import './pages.css';
+import React, { useEffect, useState } from "react";
+import { apiFetch } from "../api/client";
 
+// PUBLIC_INTERFACE
 export default function Profile() {
-  const { user, token, logout } = useContext(AuthContext);
-  const api = useMemo(() => createApiClient(() => token), [token]);
-
-  const [profile, setProfile] = useState(user || {});
-  const [saving, setSaving] = useState(false);
-  const [status, setStatus] = useState('');
+  /** Profile view/edit page. */
+  const [profile, setProfile] = useState(null);
+  const [msg, setMsg] = useState("");
+  const [err, setErr] = useState("");
 
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        // Ensure we have the latest profile
-        const data = await api.get('/users/me');
-        if (mounted) setProfile(data || {});
-      } catch (e) {
-        console.error('Failed to load profile', e);
-      }
-    })();
-    return () => { mounted = false; };
-  }, [api]);
+    apiFetch("/profile/me")
+      .then(setProfile)
+      .catch((e) => setErr(e.message || "Failed to load profile"));
+  }, []);
 
-  const onChange = (e) => {
-    const { name, value } = e.target;
-    setProfile((p) => ({ ...p, [name]: value }));
-  };
-
-  const onSave = async (e) => {
+  const save = async (e) => {
     e.preventDefault();
-    setSaving(true);
-    setStatus('');
+    setMsg("");
+    setErr("");
     try {
-      // Expected endpoint: PUT /users/me with profile fields
-      await api.put('/users/me', profile);
-      setStatus('Profile saved successfully.');
+      const updated = await apiFetch("/profile/me", {
+        method: "PUT",
+        body: JSON.stringify({
+          display_name: profile.display_name,
+          bio: profile.bio,
+          avatar_url: profile.avatar_url,
+          location: profile.location,
+          website: profile.website,
+        }),
+      });
+      setProfile(updated);
+      setMsg("Saved");
     } catch (e) {
-      console.error('Save failed', e);
-      setStatus('Failed to save profile. Please try again.');
-    } finally {
-      setSaving(false);
+      setErr(e.message || "Failed to save");
     }
   };
 
+  if (err) return <div style={{ color: "red" }}>{err}</div>;
+  if (!profile) return <div>Loading profile...</div>;
+
   return (
-    <div className="sm-page">
-      <section className="sm-section">
-        <div className="sm-section-header">
-          <h2>Your Profile</h2>
-          <button className="sm-btn sm-btn-outline" onClick={logout}>Logout</button>
-        </div>
-        <div className="sm-card">
-          <form className="sm-form" onSubmit={onSave}>
-            <div className="sm-form-row">
-              <label htmlFor="name">Name</label>
-              <input id="name" name="name" value={profile.name || ''} onChange={onChange} placeholder="Your name" />
-            </div>
-            <div className="sm-form-row">
-              <label htmlFor="username">Username</label>
-              <input id="username" name="username" value={profile.username || ''} onChange={onChange} placeholder="Username" />
-            </div>
-            <div className="sm-form-row">
-              <label htmlFor="email">Email</label>
-              <input id="email" name="email" value={profile.email || ''} onChange={onChange} placeholder="Email" type="email" />
-            </div>
-            <div className="sm-form-actions">
-              <button className="sm-btn sm-btn-primary" type="submit" disabled={saving}>
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-            {status && <div className="sm-status">{status}</div>}
-          </form>
-        </div>
-      </section>
+    <div>
+      <h2 style={{ color: "var(--color-primary)" }}>My Profile</h2>
+      {msg && <div style={{ color: "green" }}>{msg}</div>}
+      <form onSubmit={save} style={{ display: "grid", gap: 12, maxWidth: 520 }}>
+        <label>
+          Display Name
+          <input value={profile.display_name || ""} onChange={(e) => setProfile({ ...profile, display_name: e.target.value })} />
+        </label>
+        <label>
+          Bio
+          <input value={profile.bio || ""} onChange={(e) => setProfile({ ...profile, bio: e.target.value })} />
+        </label>
+        <label>
+          Location
+          <input value={profile.location || ""} onChange={(e) => setProfile({ ...profile, location: e.target.value })} />
+        </label>
+        <label>
+          Website
+          <input value={profile.website || ""} onChange={(e) => setProfile({ ...profile, website: e.target.value })} />
+        </label>
+        <button className="btn-primary" type="submit">Save</button>
+      </form>
     </div>
   );
 }

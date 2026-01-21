@@ -1,87 +1,38 @@
-//
-// API client for the social media frontend.
-// Uses REACT_APP_API_BASE_URL environment variable for the backend base URL.
-// Provides helper methods for GET, POST, PUT with auth token support.
-//
+const API_BASE = process.env.REACT_APP_API_BASE_URL || "";
+const TOKEN_KEY = process.env.REACT_APP_AUTH_TOKEN_KEY || "auth_token";
 
 // PUBLIC_INTERFACE
-export const getApiBaseUrl = () => {
-  /**
-   * Returns the API base URL from environment variables.
-   * Uses REACT_APP_API_BASE_URL; callers should ensure .env contains it.
-   */
-  const base = process.env.REACT_APP_API_BASE_URL || '';
-  return base.replace(/\/+$/, '');
-};
-
-// PUBLIC_INTERFACE
-export function createApiClient(getToken) {
-  /**
-   * Creates a simple API client bound to the provided getToken function.
-   * getToken is a function that returns the current auth token string or null.
-   */
-  const base = getApiBaseUrl();
-
-  const withAuthHeaders = (headers = {}) => {
-    const token = getToken ? getToken() : null;
-    return {
-      ...headers,
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      'Content-Type': 'application/json',
-    };
-  };
-
-  // PUBLIC_INTERFACE
-  async function get(path) {
-    /** Performs a GET request to `${base}${path}` and returns parsed JSON. */
-    const res = await fetch(`${base}${path}`, {
-      method: 'GET',
-      headers: withAuthHeaders(),
-    });
-    if (!res.ok) {
-      const msg = await safeText(res);
-      throw new Error(`GET ${path} failed: ${res.status} ${msg}`);
-    }
-    return res.json();
-  }
-
-  // PUBLIC_INTERFACE
-  async function post(path, body) {
-    /** Performs a POST request with JSON body; returns parsed JSON. */
-    const res = await fetch(`${base}${path}`, {
-      method: 'POST',
-      headers: withAuthHeaders(),
-      body: JSON.stringify(body ?? {}),
-    });
-    if (!res.ok) {
-      const msg = await safeText(res);
-      throw new Error(`POST ${path} failed: ${res.status} ${msg}`);
-    }
-    return res.json();
-  }
-
-  // PUBLIC_INTERFACE
-  async function put(path, body) {
-    /** Performs a PUT request with JSON body; returns parsed JSON. */
-    const res = await fetch(`${base}${path}`, {
-      method: 'PUT',
-      headers: withAuthHeaders(),
-      body: JSON.stringify(body ?? {}),
-    });
-    if (!res.ok) {
-      const msg = await safeText(res);
-      throw new Error(`PUT ${path} failed: ${res.status} ${msg}`);
-    }
-    return res.json();
-  }
-
-  return { get, post, put };
+export function setToken(token) {
+  /** Save JWT token to localStorage. */
+  localStorage.setItem(TOKEN_KEY, token);
 }
 
-async function safeText(res) {
-  try {
-    return await res.text();
-  } catch {
-    return '';
+// PUBLIC_INTERFACE
+export function getToken() {
+  /** Retrieve JWT token from localStorage. */
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+// PUBLIC_INTERFACE
+export async function apiFetch(path, options = {}) {
+  /** Fetch wrapper that injects Authorization header if token is present. */
+  const token = getToken();
+  const headers = {
+    "Content-Type": "application/json",
+    ...(options.headers || {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+  const resp = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  if (!resp.ok) {
+    let detail = "";
+    try {
+      detail = await resp.text();
+    } catch {}
+    throw new Error(`API ${resp.status}: ${detail}`);
   }
+  const ct = resp.headers.get("content-type") || "";
+  if (ct.includes("application/json")) {
+    return resp.json();
+  }
+  return resp.text();
 }

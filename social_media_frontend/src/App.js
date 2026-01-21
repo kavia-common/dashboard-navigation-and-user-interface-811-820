@@ -1,53 +1,47 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import './components/layout.css';
 import './pages/pages.css';
-import Sidebar from './components/Sidebar';
-import Header from './components/Header';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
-import Login from './pages/Login';
-import { AuthProvider } from './context/AuthContext';
+import Header from './components/Header';
+import Sidebar from './components/Sidebar';
 
 // PUBLIC_INTERFACE
 function App() {
-  /** Root application mounting routes and layout with theme toggling. */
+  /** Root app with routing, layout, and default light theme (#3B82F6 / #F59E0B accents). */
   const [theme, setTheme] = useState('light');
 
   useEffect(() => {
-    // Apply theme attribute to document
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  const toggleTheme = () => setTheme((t) => (t === 'light' ? 'dark' : 'light'));
-
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
         <div className="sm-app">
           <Sidebar />
           <main className="sm-main">
             <Header />
             <div className="sm-content">
-              <button className="sm-theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
-                {theme === 'light' ? '🌙' : '☀️'}
-              </button>
               <Routes>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/login" element={<Login />} />
                 <Route element={<ProtectedRoute />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/profile" element={<Profile />} />
                 </Route>
-                <Route path="/login" element={<Login />} />
-                <Route path="*" element={<div>Not Found</div>} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Routes>
             </div>
           </main>
         </div>
-      </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

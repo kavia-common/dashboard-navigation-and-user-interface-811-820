@@ -1,15 +1,12 @@
-import React, { useContext } from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
+import React from "react";
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 // PUBLIC_INTERFACE
 export default function ProtectedRoute() {
-  /**
-   * Guards nested routes to require authentication; redirects to /login if not authenticated.
-   */
-  const { isAuthenticated } = useContext(AuthContext);
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+  /** Protects nested routes; redirects to /login when unauthenticated. */
+  const { user, loading } = useAuth();
+  if (loading) return <div>Loading...</div>;
+  if (!user) return <Navigate to="/login" replace />;
   return <Outlet />;
 }
