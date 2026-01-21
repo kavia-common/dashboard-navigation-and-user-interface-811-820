@@ -1,0 +1,202 @@
+.sm-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sm-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sm-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sm-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 10px 20px var(--ring);
+}
+
+.sm-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1100px) {
+  .sm-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .sm-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sm-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sm-widget-title {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.sm-widget-value {
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.sm-accent-blue {
+  border-left: 4px solid var(--primary);
+}
+.sm-accent-amber {
+  border-left: 4px solid var(--accent);
+}
+.sm-accent-green {
+  border-left: 4px solid var(--green);
+}
+
+.sm-table {
+  display: grid;
+  gap: 10px;
+}
+
+.sm-table-head, .sm-table-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.sm-table-head {
+  color: var(--muted);
+  font-size: 12px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+
+.sm-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sm-form {
+  display: grid;
+  gap: 12px;
+  max-width: 560px;
+}
+
+.sm-form-row {
+  display: grid;
+  gap: 6px;
+}
+
+.sm-form-row label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.sm-form-row input {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+}
+
+.sm-form-row input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+.sm-form-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.sm-btn {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.sm-btn:hover {
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.sm-btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border: none;
+  color: #fff;
+}
+
+.sm-btn-outline {
+  background: transparent;
+}
+
+.sm-status {
+  font-size: 13px;
+  color: var(--green);
+}
+
+.sm-error {
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.sm-login-wrap {
+  min-height: calc(100vh - 60px);
+  display: grid;
+  place-items: center;
+}
+
+.sm-login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 10px 30px var(--ring);
+}
+
+.sm-login-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.sm-login-logo {
+  margin: 0 auto 8px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+}
+
+.sm-login-title {
+  font-weight: 800;
+}
+
+.sm-login-subtitle {
+  color: var(--muted);
+  font-size: 13px;
+}

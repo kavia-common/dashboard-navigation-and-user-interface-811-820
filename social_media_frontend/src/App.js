@@ -1,48 +1,53 @@
-import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
+import './components/layout.css';
+import './pages/pages.css';
+import Sidebar from './components/Sidebar';
+import Header from './components/Header';
+import ProtectedRoute from './components/ProtectedRoute';
+import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
+import Login from './pages/Login';
+import { AuthProvider } from './context/AuthContext';
 
 // PUBLIC_INTERFACE
 function App() {
+  /** Root application mounting routes and layout with theme toggling. */
   const [theme, setTheme] = useState('light');
 
-  // Effect to apply theme to document element
   useEffect(() => {
+    // Apply theme attribute to document
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  // PUBLIC_INTERFACE
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
+  const toggleTheme = () => setTheme((t) => (t === 'light' ? 'dark' : 'light'));
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <button 
-          className="theme-toggle" 
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-        >
-          {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
-        </button>
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <p>
-          Current theme: <strong>{theme}</strong>
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AuthProvider>
+      <BrowserRouter>
+        <div className="sm-app">
+          <Sidebar />
+          <main className="sm-main">
+            <Header />
+            <div className="sm-content">
+              <button className="sm-theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
+                {theme === 'light' ? '🌙' : '☀️'}
+              </button>
+              <Routes>
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/profile" element={<Profile />} />
+                </Route>
+                <Route path="/login" element={<Login />} />
+                <Route path="*" element={<div>Not Found</div>} />
+              </Routes>
+            </div>
+          </main>
+        </div>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
